@@ -1,0 +1,1 @@
+# tabuada-pitag-rica
