@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tabela Pitagórica Interativa</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            padding: 30px;
+            text-align: center;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
+            color: white;
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            color: #333;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn.active {
+            background: linear-gradient(135deg, #ffa726 0%, #fb8c00 100%);
+            color: white;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            color: white;
+            min-width: 150px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-card h3 {
+            font-size: 2rem;
+            margin-bottom: 5px;
+        }
+
+        .stat-card p {
+            opacity: 0.9;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            margin-bottom: 30px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: center;
+            border: 1px solid #e0e0e0;
+            position: relative;
+        }
+
+        th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .input-cell input {
+            border: none;
+            background: transparent;
+            text-align: center;
+            font-size: 1.1rem;
+            font-weight: 600;
+            width: 100%;
+            padding: 8px;
+            outline: none;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .input-cell input:focus {
+            background: #e3f2fd;
+            box-shadow: 0 0 10px rgba(33, 150, 243, 0.3);
+            transform: scale(1.05);
+        }
+
+        .input-cell.correct input {
+            background: #c8e6c9;
+            color: #2e7d32;
+        }
+
+        .input-cell.incorrect input {
+            background: #ffcdd2;
+            color: #c62828;
+            animation: shake 0.5s ease-in-out;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .result-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 400px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-content h2 {
+            color: #4caf50;
+            margin-bottom: 20px;
+            font-size: 2rem;
+        }
+
+        .modal-content p {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+        }
+
+        .history {
+            display: none;
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .history h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            align-items: center;
+        }
+
+        .history-item:last-child {
+            border-bottom: none;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4caf50, #8bc34a);
+            transition: width 0.3s ease;
+            border-radius: 4px;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .controls {
+                gap: 10px;
+            }
+            
+            .btn {
+                padding: 10px 16px;
+                font-size: 0.9rem;
+            }
+            
+            .stats {
+                justify-content: center;
+            }
+            
+            .stat-card {
+                min-width: 120px;
+            }
+            
+            th, td {
+                padding: 8px;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧮 Tabela Pitagórica</h1>
+            <div class="controls">
+                <button class="btn btn-primary" onclick="startNewGame()">🚀 Reiniciar</button>
+                <button class="btn btn-secondary active" id="modeBtn" onclick="toggleMode()">✖️ Multiplicação</button>
+                <button class="btn btn-info" onclick="toggleHistory()">📊 Histórico</button>
+            </div>
+        </div>
+
+        <div class="content">
+            <div class="stats">
+                <div class="stat-card">
+                    <h3 id="timer">00:00</h3>
+                    <p>Tempo</p>
+                </div>
+                <div class="stat-card">
+                    <h3 id="progress">0/64</h3>
+                    <p>Progresso</p>
+                </div>
+                <div class="stat-card">
+                    <h3 id="errors">0</h3>
+                    <p>Erros</p>
+                </div>
+            </div>
+
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressBar"></div>
+            </div>
+
+            <div class="table-container">
+                <table id="pythagoras-table">
+                    <thead>
+                        <tr>
+                            <th>×</th>
+                            <th>2</th>
+                            <th>3</th>
+                            <th>4</th>
+                            <th>5</th>
+                            <th>6</th>
+                            <th>7</th>
+                            <th>8</th>
+                            <th>9</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-body">
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="history" id="history">
+                <h3>📈 Histórico de Desempenho</h3>
+                <div id="historyList"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="result-modal" id="resultModal">
+        <div class="modal-content">
+            <h2>🎉 Parabéns!</h2>
+            <p id="finalTime"></p>
+            <p id="finalErrors"></p>
+            <p id="finalAccuracy"></p>
+            <button class="btn btn-primary" onclick="closeModal()" style="margin-top: 20px;">Continuar</button>
+        </div>
+    </div>
+
+    <script>
+        let currentMode = 'multiplication';
+        let startTime = null;
+        let timerInterval = null;
+        let totalCells = 64;
+        let filledCells = 0;
+        let errors = 0;
+        let gameHistory = [];
+
+        // Carregar histórico do armazenamento local
+        function loadHistory() {
+            const saved = JSON.parse(sessionStorage.getItem('pythagorasHistory') || '[]');
+            gameHistory = saved;
+        }
+
+        // Salvar histórico
+        function saveHistory() {
+            sessionStorage.setItem('pythagorasHistory', JSON.stringify(gameHistory));
+        }
+
+        // Criar tabela
+        function createTable() {
+            const tbody = document.getElementById('table-body');
+            tbody.innerHTML = '';
+            
+            for (let i = 2; i <= 9; i++) {
+                const row = document.createElement('tr');
+                const headerCell = document.createElement('th');
+                headerCell.textContent = i;
+                row.appendChild(headerCell);
+                
+                for (let j = 2; j <= 9; j++) {
+                    const cell = document.createElement('td');
+                    cell.className = 'input-cell';
+                    
+                    const input = document.createElement('input');
+                    input.type = 'number';
+                    input.dataset.row = i;
+                    input.dataset.col = j;
+                    input.addEventListener('input', handleInput);
+                    input.addEventListener('keydown', handleKeyDown);
+                    
+                    cell.appendChild(input);
+                    row.appendChild(cell);
+                }
+                
+                tbody.appendChild(row);
+            }
+            
+            // Focar no primeiro input
+            setTimeout(() => {
+                const firstInput = document.querySelector('input[data-row="2"][data-col="2"]');
+                if (firstInput) firstInput.focus();
+            }, 100);
+        }
+
+        // Gerenciar input
+        function handleInput(event) {
+            const input = event.target;
+            const row = parseInt(input.dataset.row);
+            const col = parseInt(input.dataset.col);
+            const userAnswer = parseInt(input.value);
+            
+            if (isNaN(userAnswer)) return;
+            
+            // Iniciar timer no primeiro input
+            if (!startTime) {
+                startTime = Date.now();
+                timerInterval = setInterval(updateTimer, 100);
+            }
+            
+            const correctAnswer = currentMode === 'multiplication' ? 
+                row * col : 
+                Math.floor((row * col) / Math.min(row, col)) * Math.min(row, col) === row * col ? 
+                    (row * col) / Math.min(row, col) : 
+                    row * col;
+            
+            const cell = input.parentElement;
+            
+            if (userAnswer === correctAnswer) {
+                cell.classList.remove('incorrect');
+                cell.classList.add('correct');
+                filledCells++;
+                updateProgress();
+                
+                // Mover para próximo campo automaticamente
+                setTimeout(() => moveToNext(input), 100);
+            } else if (input.value.length >= correctAnswer.toString().length) {
+                cell.classList.remove('correct');
+                cell.classList.add('incorrect');
+                errors++;
+                updateErrors();
+                
+                // Limpar campo incorreto após um tempo
+                setTimeout(() => {
+                    input.value = '';
+                    cell.classList.remove('incorrect');
+                }, 1000);
+            }
+        }
+
+        // Gerenciar teclas
+        function handleKeyDown(event) {
+            if (event.key === 'Tab') {
+                event.preventDefault();
+                moveToNext(event.target);
+            }
+        }
+
+        // Mover para próximo campo
+        function moveToNext(currentInput) {
+            const inputs = Array.from(document.querySelectorAll('input'));
+            const currentIndex = inputs.indexOf(currentInput);
+            
+            if (currentIndex < inputs.length - 1) {
+                inputs[currentIndex + 1].focus();
+            } else if (filledCells === totalCells) {
+                gameCompleted();
+            }
+        }
+
+        // Atualizar timer
+        function updateTimer() {
+            if (!startTime) return;
+            
+            const elapsed = Date.now() - startTime;
+            const seconds = Math.floor(elapsed / 1000);
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = seconds % 60;
+            
+            document.getElementById('timer').textContent = 
+                `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+        }
+
+        // Atualizar progresso
+        function updateProgress() {
+            document.getElementById('progress').textContent = `${filledCells}/${totalCells}`;
+            const percentage = (filledCells / totalCells) * 100;
+            document.getElementById('progressBar').style.width = percentage + '%';
+        }
+
+        // Atualizar erros
+        function updateErrors() {
+            document.getElementById('errors').textContent = errors;
+        }
+
+        // Jogo completo
+        function gameCompleted() {
+            clearInterval(timerInterval);
+            
+            const finalTime = Date.now() - startTime;
+            const minutes = Math.floor(finalTime / 60000);
+            const seconds = Math.floor((finalTime % 60000) / 1000);
+            const accuracy = Math.round(((totalCells - errors) / totalCells) * 100);
+            
+            // Adicionar ao histórico
+            gameHistory.push({
+                mode: currentMode,
+                time: finalTime,
+                errors: errors,
+                accuracy: accuracy,
+                date: new Date().toLocaleString('pt-BR')
+            });
+            saveHistory();
+            
+            // Mostrar modal de resultado
+            document.getElementById('finalTime').textContent = 
+                `Tempo: ${minutes}:${seconds.toString().padStart(2, '0')}`;
+            document.getElementById('finalErrors').textContent = `Erros: ${errors}`;
+            document.getElementById('finalAccuracy').textContent = `Precisão: ${accuracy}%`;
+            document.getElementById('resultModal').style.display = 'flex';
+            
+            updateHistoryDisplay();
+        }
+
+        // Alternar modo
+        function toggleMode() {
+            currentMode = currentMode === 'multiplication' ? 'division' : 'multiplication';
+            const btn = document.getElementById('modeBtn');
+            
+            if (currentMode === 'multiplication') {
+                btn.innerHTML = '✖️ Multiplicação';
+                document.querySelector('th').textContent = '×';
+            } else {
+                btn.innerHTML = '➗ Divisão';
+                document.querySelector('th').textContent = '÷';
+            }
+            
+            startNewGame();
+        }
+
+        // Iniciar novo jogo
+        function startNewGame() {
+            clearInterval(timerInterval);
+            startTime = null;
+            filledCells = 0;
+            errors = 0;
+            
+            document.getElementById('timer').textContent = '00:00';
+            updateProgress();
+            updateErrors();
+            
+            createTable();
+        }
+
+        // Alternar histórico
+        function toggleHistory() {
+            const history = document.getElementById('history');
+            history.style.display = history.style.display === 'none' ? 'block' : 'none';
+        }
+
+        // Atualizar exibição do histórico
+        function updateHistoryDisplay() {
+            const historyList = document.getElementById('historyList');
+            historyList.innerHTML = '';
+            
+            gameHistory.slice(-10).reverse().forEach(game => {
+                const item = document.createElement('div');
+                item.className = 'history-item';
+                
+                const minutes = Math.floor(game.time / 60000);
+                const seconds = Math.floor((game.time % 60000) / 1000);
+                
+                item.innerHTML = `
+                    <div>
+                        <strong>${game.mode === 'multiplication' ? '✖️' : '➗'} ${game.mode === 'multiplication' ? 'Multiplicação' : 'Divisão'}</strong><br>
+                        <small>${game.date}</small>
+                    </div>
+                    <div style="text-align: right;">
+                        <div>${minutes}:${seconds.toString().padStart(2, '0')}</div>
+                        <div style="color: ${game.accuracy >= 90 ? '#4caf50' : game.accuracy >= 70 ? '#ff9800' : '#f44336'};">
+                            ${game.accuracy}% (${game.errors} erros)
+                        </div>
+                    </div>
+                `;
+                
+                historyList.appendChild(item);
+            });
+        }
+
+        // Fechar modal
+        function closeModal() {
+            document.getElementById('resultModal').style.display = 'none';
+        }
+
+        // Inicializar aplicação
+        document.addEventListener('DOMContentLoaded', function() {
+            loadHistory();
+            createTable();
+            updateHistoryDisplay();
+        });
+    </script>
+</body>
+</html>
